@@ -13,7 +13,8 @@
     "rebuild": "electron-rebuild -f -w smart-whisper,uiohook-napi",
     "typecheck": "tsc --noEmit",
     "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "release": "npm run build && electron-builder --publish always"
   },
   "dependencies": {
     "electron-store": "^8.2.0",
@@ -43,6 +44,10 @@
   "build": {
     "appId": "com.openwhisper.app",
     "productName": "OpenWhisper",
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
+    },
     "directories": {
       "output": "release",
       "buildResources": "build"

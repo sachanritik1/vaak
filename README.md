@@ -12,6 +12,17 @@ Open-source, macOS-first voice dictation app — a local alternative to [Wispr F
 - **Snippet library** — Voice triggers that expand to full text
 - **Transcription history** — Stored locally, never sent to the cloud (unless AI cleanup is enabled)
 
+## Download
+
+Pre-built macOS installers are on the [Releases](../../releases/latest) page.
+
+| Platform | File |
+|----------|------|
+| Apple Silicon (M1/M2/M3/M4) | `OpenWhisper-x.x.x-arm64.dmg` |
+| Intel Mac | `OpenWhisper-x.x.x-x64.dmg` |
+
+Open the DMG, drag OpenWhisper to Applications, then grant permissions on first launch (see below). Unsigned builds may require **Right-click → Open** the first time.
+
 ## Requirements
 
 - macOS 12+ (Apple Silicon or Intel)
@@ -85,17 +96,45 @@ Raw transcription is always used when AI cleanup is disabled.
 
 ## Building a Release
 
+### Local build
+
 ```bash
 npm run dist
 ```
 
-Output: `release/OpenWhisper-x.x.x.dmg`
+Output: `release/OpenWhisper-x.x.x-arm64.dmg` (and `-x64.dmg` when both arches are built).
 
 Native modules (`smart-whisper`, `uiohook-napi`) are unpacked from ASAR and rebuilt for Electron's ABI via `@electron/rebuild` during `postinstall`.
 
-For App Store notarization, set your Apple Developer credentials:
+### GitHub Releases (CI)
+
+Pushing a version tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds Apple Silicon and Intel DMGs and uploads them to GitHub Releases.
 
 ```bash
+# Bump version in package.json, commit, then tag
+npm version patch   # or minor / major
+git push origin main --follow-tags
+```
+
+The tag must match `package.json` version (e.g. tag `v0.1.0` for version `0.1.0`).
+
+### Code signing (optional)
+
+By default, CI produces **unsigned** DMGs (Gatekeeper will warn on first open). To sign and notarize in CI, add these repository secrets:
+
+| Secret | Purpose |
+|--------|---------|
+| `CSC_LINK` | Base64-encoded `.p12` Developer ID certificate |
+| `CSC_KEY_PASSWORD` | Password for the `.p12` |
+| `APPLE_ID` | Apple ID email |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password |
+| `APPLE_TEAM_ID` | Team ID |
+
+For local signed builds:
+
+```bash
+export CSC_LINK=...
+export CSC_KEY_PASSWORD=...
 export APPLE_ID=...
 export APPLE_APP_SPECIFIC_PASSWORD=...
 export APPLE_TEAM_ID=...

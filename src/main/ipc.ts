@@ -109,7 +109,7 @@ async function handleProcessRecording(buffer: ArrayBuffer): Promise<{ ok: boolea
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Transcription failed'
     broadcastHudState({ state: 'idle', level: 0, message })
-    console.error('[dictation]', err)
+    console.error('[dictation]', message)
     return { ok: false, error: message }
   } finally {
     markDictationIdle()

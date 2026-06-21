@@ -350,8 +350,6 @@ const HF_SENSE_INT8 =
   'https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09/resolve/main'
 const HF_NEMO_MEDIUM =
   'https://huggingface.co/csukuangfj/sherpa-onnx-nemo-ctc-en-conformer-medium/resolve/main'
-const HF_NEMO_FAST =
-  'https://huggingface.co/csukuangfj/sherpa-onnx-nemo-fast-conformer-ctc-en-24500/resolve/main'
 
 function moonshineFiles(baseUrl: string) {
   return [
@@ -453,28 +451,6 @@ export const NEMO_CATALOG: ModelCatalogEntry[] = [
       modelType: 'nemo_ctc',
       tokens: 'tokens.txt',
       model: 'model.int8.onnx'
-    }
-  },
-  {
-    id: 'nemo-fast-conformer-en',
-    name: 'NeMo Fast Conformer (English)',
-    filename: 'nemo-fast-conformer-en',
-    url: '',
-    sizeBytes: 458_000_000,
-    language: 'english',
-    engine: 'sherpa-onnx',
-    family: 'nemo',
-    description:
-      'NVIDIA NeMo fast-conformer CTC — high-quality English model trained on 24.5k hours (~437 MB).',
-    files: [
-      { filename: 'model.onnx', url: `${HF_NEMO_FAST}/model.onnx` },
-      { filename: 'tokens.txt', url: `${HF_NEMO_FAST}/tokens.txt` }
-    ],
-    sherpa: {
-      kind: 'nemo-ctc',
-      modelType: 'nemo_ctc',
-      tokens: 'tokens.txt',
-      model: 'model.onnx'
     }
   }
 ]

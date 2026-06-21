@@ -103,8 +103,8 @@ export async function transcribeWithParakeetCli(
     { maxBuffer: 10 * 1024 * 1024 }
   )
 
-  if (stderr?.trim()) {
-    console.debug('[parakeet-cli stderr]', stderr.trim())
+  if (process.env.VAAK_DEBUG && stderr?.trim()) {
+    console.debug('[parakeet-cli stderr]', stderr.trim().slice(0, 500))
   }
 
   const combined = stdout.trim()

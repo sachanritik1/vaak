@@ -1,6 +1,6 @@
 /** Lines emitted by whisper.cpp / ggml / parakeet / sherpa native runtimes — not speech. */
 const ENGINE_LOG_LINE =
-  /^(?:ggml(?:_[\w]+)?|whisper(?:_[\w]+)?|llama(?:_[\w]+)?|parakeet(?:_[\w]+)?|sherpa(?:_[\w-]+)?|metal(?:_[\w]+)?|coreml(?:_[\w]+)?|cuda(?:_[\w]+)?|openvino(?:_[\w]+)?|OfflineRecognizerConfig|Creating recognizer|recognizer created|Started|Done!|Real time factor|num threads:|decoding method:|Elapsed seconds:)\b/i
+  /^(?:ggml(?:_[\w]+)?|whisper(?:_[\w]+)?|llama(?:_[\w]+)?|parakeet(?:_[\w]+)?|sherpa(?:_[\w-]+)?|metal(?:_[\w]+)?|coreml(?:_[\w]+)?|cuda(?:_[\w]+)?|openvino(?:_[\w]+)?|OfflineRecognizerConfig|Creating recognizer|recognizer created|Started|Done!|Real time factor|num threads:|decoding method:|Elapsed seconds:|libc\+\+abi:)\b/i
 
 const ENGINE_LOG_PHRASE =
   /\b(?:deallocat(?:e|ing)|allocat(?:e|ing)|initializ(?:e|ing)|loading model|loaded model|backend|system_info|whisper_init|whisper_free|metal_init|metal_free)\b/i
@@ -56,6 +56,8 @@ export function isEngineLogLine(line: string): boolean {
   if (ENGINE_LOG_LINE.test(t)) return true
   if (t.includes('OfflineRecognizerConfig(')) return true
   if (t.includes('/parse-options.cc:')) return true
+  if (/^Real time factor \(RTF\):/i.test(t)) return true
+  if (/^Elapsed seconds:/i.test(t)) return true
   if (t.endsWith('.wav') && !t.includes(' ')) return true
   if (t === '----') return true
   if (ENGINE_LOG_PHRASE.test(t) && /^[\w._-]+:\s/.test(t)) return true

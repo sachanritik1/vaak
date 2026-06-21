@@ -121,8 +121,8 @@ function buildSherpaArgs(modelDir: string, manifest: SherpaManifest): string[] {
   return args
 }
 
-function parseSherpaOutput(stdout: string): string {
-  const lines = stdout.split('\n').map((l) => l.trim()).filter(Boolean)
+function parseSherpaOutput(raw: string): string {
+  const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean)
 
   for (let i = lines.length - 1; i >= 0; i--) {
     if (isEngineLogLine(lines[i])) continue
@@ -145,19 +145,45 @@ function parseSherpaOutput(stdout: string): string {
   return ''
 }
 
+function formatSherpaFailure(err: unknown, manifest: SherpaManifest): string {
+  const execErr = err as { stderr?: string; signal?: string }
+  const stderr = execErr.stderr ?? ''
+
+  if (stderr.includes('Ort::Exception') || execErr.signal === 'SIGABRT') {
+    if (manifest.kind === 'nemo-ctc' && manifest.model === 'model.onnx') {
+      return 'NeMo Fast Conformer is incompatible with the current sherpa-onnx runtime. Delete it and use NeMo Conformer Medium instead.'
+    }
+    return 'The speech model crashed while loading. Try Moonshine, NeMo Conformer Medium, or Whisper.'
+  }
+
+  if (err instanceof Error && err.message.startsWith('Command failed:')) {
+    return 'Sherpa-ONNX transcription failed. Check that the model finished downloading.'
+  }
+
+  return err instanceof Error ? err.message : 'Sherpa-ONNX transcription failed'
+}
+
 export async function transcribeWithSherpa(modelDir: string, wavPath: string): Promise<string> {
   await ensureSherpaOffline()
   const cliPath = join(binDir(), 'sherpa-onnx-offline')
   const manifest = readSherpaManifest(modelDir)
   const args = [...buildSherpaArgs(modelDir, manifest), wavPath]
 
-  const { stdout, stderr } = await execFileAsync(cliPath, args, {
-    maxBuffer: 10 * 1024 * 1024
-  })
+  try {
+    const { stdout, stderr } = await execFileAsync(cliPath, args, {
+      maxBuffer: 10 * 1024 * 1024
+    })
 
-  if (stderr?.trim()) {
-    console.debug('[sherpa-onnx stderr]', stderr.trim())
+    const text = parseSherpaOutput(`${stdout}\n${stderr}`.trim())
+    if (!text && process.env.VAAK_DEBUG && stderr?.trim()) {
+      console.debug('[sherpa-onnx stderr]', stderr.trim().slice(0, 500))
+    }
+    return text
+  } catch (err) {
+    if (process.env.VAAK_DEBUG) {
+      const stderr = (err as { stderr?: string }).stderr
+      if (stderr?.trim()) console.debug('[sherpa-onnx stderr]', stderr.trim().slice(0, 500))
+    }
+    throw new Error(formatSherpaFailure(err, manifest))
   }
-
-  return parseSherpaOutput(stdout.trim())
 }

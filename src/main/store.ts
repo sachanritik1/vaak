@@ -14,7 +14,7 @@ const schema = {
 }
 
 export const appStore = new Store<AppSettings>({
-  name: 'openwhisper',
+  name: 'vaak',
   defaults: DEFAULT_SETTINGS,
   schema
 })

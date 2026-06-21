@@ -1,9 +1,9 @@
 {
-  "name": "openwhisper",
+  "name": "vaak",
   "version": "0.1.0",
-  "description": "Open-source Wispr Flow alternative — local voice dictation with whisper.cpp",
+  "description": "Vaak — open-source Wispr Flow alternative with local voice dictation",
   "main": "./out/main/index.js",
-  "author": "OpenWhisper Contributors",
+  "author": "Vaak Contributors",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -42,8 +42,8 @@
     "vite": "^6.2.2"
   },
   "build": {
-    "appId": "com.openwhisper.app",
-    "productName": "OpenWhisper",
+    "appId": "com.vaak.app",
+    "productName": "Vaak",
     "publish": {
       "provider": "github",
       "releaseType": "release"
@@ -74,8 +74,8 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "OpenWhisper needs microphone access to transcribe your voice.",
-        "NSAppleEventsUsageDescription": "OpenWhisper uses System Events to paste transcribed text into the focused application."
+        "NSMicrophoneUsageDescription": "Vaak needs microphone access to transcribe your voice.",
+        "NSAppleEventsUsageDescription": "Vaak uses System Events to paste transcribed text into the focused application."
       }
     }
   }

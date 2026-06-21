@@ -14,7 +14,7 @@ export function createSettingsWindow(): BrowserWindow {
     height: 720,
     minWidth: 800,
     minHeight: 600,
-    title: 'OpenWhisper Settings',
+    title: 'Vaak Settings',
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

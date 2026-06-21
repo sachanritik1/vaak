@@ -19,7 +19,7 @@ export class ParakeetGgufEngine implements SttEngine {
       throw new Error('Parakeet GGUF model not loaded.')
     }
 
-    const wavPath = join(tmpdir(), `openwhisper-${randomUUID()}.wav`)
+    const wavPath = join(tmpdir(), `vaak-${randomUUID()}.wav`)
     writeWavFile(pcm, wavPath)
 
     try {

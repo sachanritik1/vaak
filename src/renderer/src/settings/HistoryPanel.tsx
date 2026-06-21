@@ -16,8 +16,8 @@ function formatDuration(ms: number): string {
 
 export function HistoryPanel({ settings, onUpdate }: Props) {
   const handleClear = async () => {
-    await window.openwhisper.clearHistory()
-    const s = await window.openwhisper.getSettings()
+    await window.vaak.clearHistory()
+    const s = await window.vaak.getSettings()
     await onUpdate({ history: s.history })
   }
 

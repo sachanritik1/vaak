@@ -4,7 +4,7 @@ import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 
-const OPENWHISPER_NAMES = new Set(['OpenWhisper', 'Electron'])
+const VAAK_APP_NAMES = new Set(['Vaak', 'OpenWhisper', 'Electron'])
 
 type ClipboardSnapshot = {
   text: string | null
@@ -53,7 +53,7 @@ export async function capturePasteTarget(): Promise<void> {
   }
 
   const front = await getFrontmostAppName()
-  if (front && !OPENWHISPER_NAMES.has(front)) {
+  if (front && !VAAK_APP_NAMES.has(front)) {
     pasteTargetApp = front
     lastExternalApp = front
   } else {
@@ -67,7 +67,7 @@ export function clearPasteTarget(): void {
 
 async function activatePasteTarget(): Promise<void> {
   const target = pasteTargetApp ?? lastExternalApp
-  if (!target || OPENWHISPER_NAMES.has(target)) return
+  if (!target || VAAK_APP_NAMES.has(target)) return
 
   try {
     await execFileAsync('osascript', [
@@ -116,7 +116,7 @@ export async function injectText(text: string): Promise<void> {
 export async function testInjection(): Promise<boolean> {
   try {
     await capturePasteTarget()
-    await injectText('OpenWhisper test')
+    await injectText('Vaak test')
     return true
   } catch {
     return false

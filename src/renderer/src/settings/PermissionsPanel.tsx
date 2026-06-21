@@ -31,7 +31,7 @@ export function PermissionsPanel({ permissions, settings, onRefresh }: Props) {
               {permissions.microphone ? 'Granted' : 'Required'}
             </span>
             {!permissions.microphone && (
-              <button className="btn btn-primary" onClick={() => window.openwhisper.requestMicrophone().then(onRefresh)}>
+              <button className="btn btn-primary" onClick={() => window.vaak.requestMicrophone().then(onRefresh)}>
                 Grant
               </button>
             )}
@@ -48,7 +48,7 @@ export function PermissionsPanel({ permissions, settings, onRefresh }: Props) {
               {permissions.accessibility ? 'Granted' : 'Required'}
             </span>
             {!permissions.accessibility && (
-              <button className="btn btn-secondary" onClick={() => window.openwhisper.openAccessibility()}>
+              <button className="btn btn-secondary" onClick={() => window.vaak.openAccessibility()}>
                 Open Settings
               </button>
             )}
@@ -65,7 +65,7 @@ export function PermissionsPanel({ permissions, settings, onRefresh }: Props) {
               {permissions.inputMonitoring ? 'Granted' : 'Required'}
             </span>
             {!permissions.inputMonitoring && (
-              <button className="btn btn-secondary" onClick={() => window.openwhisper.openInputMonitoring()}>
+              <button className="btn btn-secondary" onClick={() => window.vaak.openInputMonitoring()}>
                 Open Settings
               </button>
             )}
@@ -81,7 +81,7 @@ export function PermissionsPanel({ permissions, settings, onRefresh }: Props) {
             <span className={`badge ${permissions.automation ? 'badge-success' : 'badge-warning'}`}>
               {permissions.automation ? 'Granted' : 'May be required'}
             </span>
-            <button className="btn btn-secondary" onClick={() => window.openwhisper.testInjection()}>
+            <button className="btn btn-secondary" onClick={() => window.vaak.testInjection()}>
               Test Paste
             </button>
           </div>

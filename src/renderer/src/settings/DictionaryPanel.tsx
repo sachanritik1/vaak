@@ -30,7 +30,7 @@ export function DictionaryPanel({ settings, onUpdate }: Props) {
     <div>
       <h2 className="text-2xl font-semibold text-white mb-2">Personal Dictionary</h2>
       <p className="text-slate-400 mb-6 text-sm">
-        Teach OpenWhisper your names, jargon, and preferred spellings. Words are passed to Whisper as context hints; optional replacements are applied after transcription.
+        Teach Vaak your names, jargon, and preferred spellings. Words are passed to Whisper as context hints; optional replacements are applied after transcription.
       </p>
 
       <div className="card">
@@ -38,7 +38,7 @@ export function DictionaryPanel({ settings, onUpdate }: Props) {
         <div className="flex gap-3 mb-3">
           <input
             className="input flex-1"
-            placeholder="Word or phrase (e.g. OpenWhisper)"
+            placeholder="Word or phrase (e.g. Vaak)"
             value={word}
             onChange={(e) => setWord(e.target.value)}
           />

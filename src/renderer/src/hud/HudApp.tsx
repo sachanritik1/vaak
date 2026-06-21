@@ -7,9 +7,9 @@ export function HudApp() {
   const processingRef = useRef(false)
 
   useEffect(() => {
-    const unsubHud = window.openwhisper.onHudState(setState)
+    const unsubHud = window.vaak.onHudState(setState)
 
-    const unsubDictation = window.openwhisper.onDictationState(async (dictationState) => {
+    const unsubDictation = window.vaak.onDictationState(async (dictationState) => {
       if (dictationState === 'recording') {
         if (audioRecorder.isActive()) return
         try {
@@ -32,7 +32,7 @@ export function HudApp() {
       if (processingRef.current || pcm.length === 0) {
         if (pcm.length === 0) {
           // Reset main-process dictation state when nothing was captured
-          await window.openwhisper.processRecording(new ArrayBuffer(0))
+          await window.vaak.processRecording(new ArrayBuffer(0))
         }
         return
       }
@@ -40,7 +40,7 @@ export function HudApp() {
       processingRef.current = true
       try {
         const buffer = pcm.buffer.slice(pcm.byteOffset, pcm.byteOffset + pcm.byteLength)
-        await window.openwhisper.processRecording(buffer)
+        await window.vaak.processRecording(buffer)
       } catch (err) {
         console.error('Failed to process recording:', err)
       } finally {
@@ -76,7 +76,7 @@ export function HudApp() {
                   ? 'Transcribing…'
                   : state.state === 'injecting'
                     ? 'Pasting…'
-                    : 'OpenWhisper')}
+                    : 'Vaak')}
           </span>
         </div>
         {state.state === 'recording' && (

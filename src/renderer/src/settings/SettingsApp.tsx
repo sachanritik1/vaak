@@ -32,8 +32,8 @@ export function SettingsApp() {
 
   const refresh = async () => {
     const [s, p] = await Promise.all([
-      window.openwhisper.getSettings(),
-      window.openwhisper.getPermissions()
+      window.vaak.getSettings(),
+      window.vaak.getPermissions()
     ])
     setSettings(s)
     setPermissions(p)
@@ -41,9 +41,9 @@ export function SettingsApp() {
 
   useEffect(() => {
     refresh()
-    void window.openwhisper.getDownloads().then(setDownloads)
+    void window.vaak.getDownloads().then(setDownloads)
 
-    const unsubProgress = window.openwhisper.onDownloadProgress((progress) => {
+    const unsubProgress = window.vaak.onDownloadProgress((progress) => {
       const p = progress as ModelDownloadJob
       setDownloads((prev) => {
         const idx = prev.findIndex((d) => d.modelId === p.modelId)
@@ -60,7 +60,7 @@ export function SettingsApp() {
       })
     })
 
-    const unsubUpdated = window.openwhisper.onDownloadsUpdated((jobs) => {
+    const unsubUpdated = window.vaak.onDownloadsUpdated((jobs) => {
       setDownloads(jobs)
       if (jobs.some((j) => j.status === 'completed')) {
         void refresh()
@@ -76,7 +76,7 @@ export function SettingsApp() {
   }, [])
 
   const updateSettings = async (partial: Partial<AppSettings>) => {
-    const s = await window.openwhisper.setSettings(partial)
+    const s = await window.vaak.setSettings(partial)
     setSettings(s)
   }
 
@@ -96,7 +96,7 @@ export function SettingsApp() {
     <div className="settings-shell flex h-full">
       <aside className="settings-sidebar">
         <div className="px-6 mb-8">
-          <h1 className="text-lg font-semibold text-white">OpenWhisper</h1>
+          <h1 className="text-lg font-semibold text-white">Vaak</h1>
           <p className="text-xs text-slate-500 mt-1">Local voice dictation</p>
         </div>
         <nav>

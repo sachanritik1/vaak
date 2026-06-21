@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, type AppSettings, type DownloadEnqueueResult, type HudState, type ModelDownloadJob, type PermissionStatus } from '../shared/types'
 
-export type OpenWhisperApi = {
+export type VaakApi = {
   getSettings: () => Promise<AppSettings>
   setSettings: (partial: Partial<AppSettings>) => Promise<AppSettings>
   getPermissions: () => Promise<PermissionStatus>
@@ -25,7 +25,7 @@ export type OpenWhisperApi = {
   onDictationState: (cb: (state: 'recording' | 'idle') => void) => () => void
 }
 
-const api: OpenWhisperApi = {
+const api: VaakApi = {
   getSettings: () => ipcRenderer.invoke(IPC.GET_SETTINGS),
   setSettings: (partial) => ipcRenderer.invoke(IPC.SET_SETTINGS, partial),
   getPermissions: () => ipcRenderer.invoke(IPC.GET_PERMISSIONS),
@@ -65,10 +65,10 @@ const api: OpenWhisperApi = {
   }
 }
 
-contextBridge.exposeInMainWorld('openwhisper', api)
+contextBridge.exposeInMainWorld('vaak', api)
 
 declare global {
   interface Window {
-    openwhisper: OpenWhisperApi
+    vaak: VaakApi
   }
 }

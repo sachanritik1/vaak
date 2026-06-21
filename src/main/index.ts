@@ -5,6 +5,7 @@ import { openSettingsWindow } from './windows/settings'
 import { registerIpcHandlers, ensureDictationIdle } from './ipc'
 import { initHotkeyManager, stopHotkeyManager } from './hotkey/manager'
 import { markDictationIdle } from './dictation-state'
+import { migrateFromOpenWhisper } from './migrate-user-data'
 
 let tray: Tray | null = null
 
@@ -39,7 +40,7 @@ export function createTray(): void {
   const icon = createTrayIcon()
 
   tray = new Tray(icon)
-  tray.setToolTip('OpenWhisper')
+  tray.setToolTip('Vaak')
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -52,7 +53,7 @@ export function createTray(): void {
     },
     { type: 'separator' },
     {
-      label: 'Quit OpenWhisper',
+      label: 'Quit Vaak',
       click: () => app.quit()
     }
   ])
@@ -62,7 +63,8 @@ export function createTray(): void {
 }
 
 export function setupApp(): void {
-  app.setName('OpenWhisper')
+  app.setName('Vaak')
+  migrateFromOpenWhisper()
 
   app.whenReady().then(() => {
     if (process.platform === 'darwin' && app.dock) {

@@ -1,6 +1,8 @@
-# OpenWhisper
+# Vaak
 
 Open-source, macOS-first voice dictation app — a local alternative to [Wispr Flow](https://wisprflow.ai/). Hold a hotkey, speak, and get polished text pasted into any app using open-weight Whisper models running entirely on your machine.
+
+**Vaak** (वाक्) means *speech* or *voice* in Sanskrit.
 
 ## Features
 
@@ -18,10 +20,10 @@ Pre-built macOS installers are on the [Releases](../../releases/latest) page.
 
 | Platform | File |
 |----------|------|
-| Apple Silicon (M1/M2/M3/M4) | `OpenWhisper-x.x.x-arm64.dmg` |
-| Intel Mac | `OpenWhisper-x.x.x-x64.dmg` |
+| Apple Silicon (M1/M2/M3/M4) | `Vaak-x.x.x-arm64.dmg` |
+| Intel Mac | `Vaak-x.x.x-x64.dmg` |
 
-Open the DMG, drag OpenWhisper to Applications, then grant permissions on first launch (see below). Unsigned builds may require **Right-click → Open** the first time.
+Open the DMG, drag Vaak to Applications, then grant permissions on first launch (see below). Unsigned builds may require **Right-click → Open** the first time.
 
 ## Requirements
 
@@ -61,7 +63,7 @@ Hotkey (uiohook) → Audio capture (16kHz PCM) → whisper.cpp → [optional AI 
 ## Model Sources
 
 ### Whisper
-Curated models from [ggerganov/whisper.cpp on HuggingFace](https://huggingface.co/ggerganov/whisper.cpp). Stored in `~/Library/Application Support/openwhisper/models/`.
+Curated models from [ggerganov/whisper.cpp on HuggingFace](https://huggingface.co/ggerganov/whisper.cpp). Stored in `~/Library/Application Support/Vaak/models/`.
 
 ### NVIDIA Parakeet
 - **Parakeet TDT v3 (CoreML)** — runs on Apple Neural Engine via [parakeet-coreml](https://www.npmjs.com/package/parakeet-coreml). Best choice on Apple Silicon. Auto-downloads ~1.5 GB to `~/.cache/parakeet-coreml/`.
@@ -102,7 +104,7 @@ Raw transcription is always used when AI cleanup is disabled.
 npm run dist
 ```
 
-Output: `release/OpenWhisper-x.x.x-arm64.dmg` (and `-x64.dmg` when both arches are built).
+Output: `release/Vaak-x.x.x-arm64.dmg` (and `-x64.dmg` when both arches are built).
 
 Native modules (`smart-whisper`, `uiohook-napi`) are unpacked from ASAR and rebuilt for Electron's ABI via `@electron/rebuild` during `postinstall`.
 

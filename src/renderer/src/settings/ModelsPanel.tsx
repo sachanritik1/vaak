@@ -145,8 +145,8 @@ export function ModelsPanel({ settings, onUpdate, downloads, onRefresh }: Props)
 
   const refreshLocal = async () => {
     const [c, i] = await Promise.all([
-      window.openwhisper.getModelCatalog() as Promise<ModelCatalogEntry[]>,
-      window.openwhisper.getInstalledModels() as Promise<InstalledModel[]>
+      window.vaak.getModelCatalog() as Promise<ModelCatalogEntry[]>,
+      window.vaak.getInstalledModels() as Promise<InstalledModel[]>
     ])
     setCatalog(c)
     setInstalled(i)
@@ -174,13 +174,13 @@ export function ModelsPanel({ settings, onUpdate, downloads, onRefresh }: Props)
 
   const handleDownload = (id: string) => {
     setError(null)
-    void window.openwhisper.downloadModel(id).then(handleEnqueueResult)
+    void window.vaak.downloadModel(id).then(handleEnqueueResult)
   }
 
   const handleCustomDownload = () => {
     if (!customUrl.trim()) return
     setError(null)
-    void window.openwhisper
+    void window.vaak
       .downloadCustomModel(customUrl, customName || undefined)
       .then((result) => {
         handleEnqueueResult(result as DownloadEnqueueResult)
@@ -192,15 +192,15 @@ export function ModelsPanel({ settings, onUpdate, downloads, onRefresh }: Props)
   }
 
   const handleSetActive = async (id: string) => {
-    await window.openwhisper.setActiveModel(id)
+    await window.vaak.setActiveModel(id)
     await onUpdate({ activeModelId: id })
   }
 
   const handleDelete = async (id: string) => {
-    await window.openwhisper.deleteModel(id)
+    await window.vaak.deleteModel(id)
     await refreshLocal()
     await onRefresh()
-    const s = await window.openwhisper.getSettings()
+    const s = await window.vaak.getSettings()
     await onUpdate({ activeModelId: s.activeModelId })
   }
 

@@ -4,12 +4,14 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   release-mac:
+    name: macOS ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
@@ -25,10 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # node-gyp needs distutils (removed in Python 3.12+). Pin 3.11 on PATH so
-      # postinstall/electron-builder pick it up — venv/npm config alone is ignored
-      # by electron-builder's bundled @electron/rebuild.
-      - name: Setup Python
+      - name: Setup Python 3.11
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -39,13 +38,21 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Verify node-gyp Python
-        run: python3 -c "from distutils.version import StrictVersion; print('node-gyp python ok')"
+      - name: Configure node-gyp
+        run: |
+          PY="$(command -v python3)"
+          echo "PYTHON=$PY" >> "$GITHUB_ENV"
+          echo "npm_config_python=$PY" >> "$GITHUB_ENV"
+          npm config set python "$PY"
+          "$PY" -c "from distutils.version import StrictVersion; print('node-gyp ok:', '$PY')"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and publish
+      - name: Build renderer and main
+        run: npm run build
+
+      - name: Package and publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -54,10 +61,15 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          ARGS="--mac dmg --${{ matrix.arch }}"
-          if [ -n "$CSC_LINK" ]; then
-            npm run release -- $ARGS
-          else
+          set -euo pipefail
+          args=(
+            --mac dmg
+            --"${{ matrix.arch }}"
+            --publish always
+            --config.npmRebuild=false
+          )
+          if [ -z "${CSC_LINK:-}" ]; then
             export CSC_IDENTITY_AUTO_DISCOVERY=false
-            npm run release -- $ARGS --config.mac.hardenedRuntime=false
+            args+=(--config.mac.hardenedRuntime=false)
           fi
+          npx electron-builder "${args[@]}"

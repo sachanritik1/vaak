@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Rebuild native Electron addons (smart-whisper, uiohook-napi).
- * Uses a Python venv with setuptools when system Python lacks distutils.
+ * Local fallback when electron-builder install-app-deps fails (e.g. Python 3.12+ without distutils).
+ * CI uses actions/setup-python@v6 with Python 3.11 — this script is not run in CI postinstall.
  */
 const { execSync, spawnSync } = require('node:child_process')
 const { existsSync, mkdirSync } = require('node:fs')
@@ -24,18 +24,14 @@ function ensureVenvPython() {
 function rebuild() {
   const python = ensureVenvPython()
   console.log('[rebuild] Rebuilding native modules for Electron…')
-  const result = spawnSync(
-    'npx',
-    ['electron-rebuild', '-f', '-w', 'smart-whisper,uiohook-napi'],
-    {
-      cwd: root,
-      stdio: 'inherit',
-      env: { ...process.env, npm_config_python: python, PYTHON: python }
-    }
-  )
+  const result = spawnSync('npx', ['electron-builder', 'install-app-deps'], {
+    cwd: root,
+    stdio: 'inherit',
+    env: { ...process.env, npm_config_python: python, PYTHON: python }
+  })
   if (result.status !== 0) {
-    console.warn('[rebuild] Native rebuild failed — run manually after fixing node-gyp deps')
-    process.exit(0)
+    console.error('[rebuild] Native rebuild failed')
+    process.exit(1)
   }
 }
 

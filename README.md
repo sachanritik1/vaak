@@ -106,7 +106,7 @@ npm run dist
 
 Output: `release/Vaak-x.x.x-arm64.dmg` (and `-x64.dmg` when both arches are built).
 
-Native modules (`smart-whisper`, `uiohook-napi`) are unpacked from ASAR and rebuilt for Electron's ABI via `@electron/rebuild` during `postinstall`.
+Native modules (`smart-whisper`, `uiohook-napi`) are unpacked from ASAR and rebuilt for Electron's ABI via `electron-builder install-app-deps` during `postinstall`.
 
 ### GitHub Releases (CI)
 

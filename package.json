@@ -9,8 +9,8 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "postinstall": "electron-builder install-app-deps || true && node scripts/rebuild-native.cjs && node scripts/install-parakeet.cjs",
-    "rebuild": "electron-rebuild -f -w smart-whisper,uiohook-napi",
+    "postinstall": "electron-builder install-app-deps && node scripts/install-parakeet.cjs",
+    "rebuild": "electron-builder install-app-deps",
     "typecheck": "tsc --noEmit",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
@@ -25,7 +25,6 @@
     "parakeet-coreml": "^2.2.0"
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.7.1",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

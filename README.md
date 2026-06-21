@@ -1,0 +1,129 @@
+# OpenWhisper
+
+Open-source, macOS-first voice dictation app — a local alternative to [Wispr Flow](https://wisprflow.ai/). Hold a hotkey, speak, and get polished text pasted into any app using open-weight Whisper models running entirely on your machine.
+
+## Features
+
+- **System-wide dictation** — Hold-to-talk hotkey works in every app
+- **Local STT** — whisper.cpp via [smart-whisper](https://www.npmjs.com/package/smart-whisper), with Metal GPU acceleration on Apple Silicon
+- **Model manager** — Download curated Whisper models from HuggingFace or add custom URLs
+- **Optional AI cleanup** — Pluggable providers: Ollama (local), OpenAI, or Anthropic (off by default)
+- **Personal dictionary** — Whisper prompt biasing + post-transcription replacements
+- **Snippet library** — Voice triggers that expand to full text
+- **Transcription history** — Stored locally, never sent to the cloud (unless AI cleanup is enabled)
+
+## Requirements
+
+- macOS 12+ (Apple Silicon or Intel)
+- Node.js 20+
+- Microphone, Accessibility, and Input Monitoring permissions
+
+## Quick Start
+
+```bash
+# Install dependencies (rebuilds native modules for Electron)
+npm install
+
+# Development
+npm run dev
+
+# Build for production
+npm run build
+npm run dist
+```
+
+On first launch:
+1. Grant **Microphone**, **Accessibility**, and **Input Monitoring** permissions in the Setup tab
+2. Download a Whisper model in the **Models** tab (start with `Whisper Base` or `Large v3 Turbo Q5`)
+3. Hold **Right Option (⌥)** anywhere to dictate
+
+## Architecture
+
+```
+Hotkey (uiohook) → Audio capture (16kHz PCM) → whisper.cpp → [optional AI cleanup] → clipboard paste
+```
+
+- **Main process**: STT engine, model downloads, hotkey listener, text injection
+- **HUD window**: Frameless overlay showing recording state (non-focusable, won't steal paste target)
+- **Settings window**: Models, permissions, hotkey, AI, dictionary, snippets, history
+
+## Model Sources
+
+### Whisper
+Curated models from [ggerganov/whisper.cpp on HuggingFace](https://huggingface.co/ggerganov/whisper.cpp). Stored in `~/Library/Application Support/openwhisper/models/`.
+
+### NVIDIA Parakeet
+- **Parakeet TDT v3 (CoreML)** — runs on Apple Neural Engine via [parakeet-coreml](https://www.npmjs.com/package/parakeet-coreml). Best choice on Apple Silicon. Auto-downloads ~1.5 GB to `~/.cache/parakeet-coreml/`.
+- **Parakeet GGUF** — runs via [parakeet.cpp](https://github.com/mudler/parakeet.cpp) (binary auto-downloads on first use). Models from [mudler/parakeet-cpp-gguf](https://huggingface.co/mudler/parakeet-cpp-gguf).
+
+## Hotkey
+
+Default: **Hold Right Option (⌥)** to record, release to transcribe and paste.
+
+Configure in Settings → Hotkey. Toggle mode uses `Alt+Space` as a global shortcut fallback.
+
+## AI Cleanup (Optional)
+
+When enabled, dictated text is sent to your chosen provider for grammar/filler cleanup before pasting. Providers:
+
+| Provider | Config |
+|----------|--------|
+| Ollama | `http://localhost:11434` + model name |
+| OpenAI | API key + model (e.g. `gpt-4o-mini`) |
+| Anthropic | API key + model (e.g. `claude-3-5-haiku-20241022`) |
+
+Raw transcription is always used when AI cleanup is disabled.
+
+## Permissions
+
+| Permission | Why |
+|------------|-----|
+| Microphone | Capture voice |
+| Accessibility | Paste into focused app |
+| Input Monitoring | Global hold-to-talk hotkey |
+| Automation (Apple Events) | Simulate Cmd+V paste |
+
+## Building a Release
+
+```bash
+npm run dist
+```
+
+Output: `release/OpenWhisper-x.x.x.dmg`
+
+Native modules (`smart-whisper`, `uiohook-napi`) are unpacked from ASAR and rebuilt for Electron's ABI via `@electron/rebuild` during `postinstall`.
+
+For App Store notarization, set your Apple Developer credentials:
+
+```bash
+export APPLE_ID=...
+export APPLE_APP_SPECIFIC_PASSWORD=...
+export APPLE_TEAM_ID=...
+npm run dist
+```
+
+## Project Structure
+
+```
+src/
+  main/           # Electron main process
+    stt/          # whisper.cpp engine
+    models/       # HuggingFace catalog + downloader
+    hotkey/       # uiohook hold-to-talk
+    injection/    # macOS clipboard paste
+    ai/           # Optional cleanup providers
+  preload/        # contextBridge IPC API
+  renderer/       # React UI (HUD + Settings)
+  shared/         # Shared TypeScript types
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Roadmap
+
+- [ ] Windows / Linux support
+- [ ] Voice Activity Detection (auto-stop)
+- [ ] `@kutalia/whisper-node-addon` as alternative STT engine
+- [ ] iCloud sync for dictionary/snippets

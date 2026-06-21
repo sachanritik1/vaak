@@ -1,0 +1,77 @@
+{
+  "name": "openwhisper",
+  "version": "0.1.0",
+  "description": "Open-source Wispr Flow alternative — local voice dictation with whisper.cpp",
+  "main": "./out/main/index.js",
+  "author": "OpenWhisper Contributors",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "postinstall": "electron-builder install-app-deps || true && node scripts/rebuild-native.cjs && node scripts/install-parakeet.cjs",
+    "rebuild": "electron-rebuild -f -w smart-whisper,uiohook-napi",
+    "typecheck": "tsc --noEmit",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "smart-whisper": "^0.8.1",
+    "uiohook-napi": "^1.5.5"
+  },
+  "optionalDependencies": {
+    "parakeet-coreml": "^2.2.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "^35.0.3",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.0.0",
+    "postcss": "^8.5.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2"
+  },
+  "build": {
+    "appId": "com.openwhisper.app",
+    "productName": "OpenWhisper",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "package.json",
+      "resources/icon.png",
+      "resources/tray-icon.png",
+      "resources/tray-icon@2x.png"
+    ],
+    "asarUnpack": [
+      "**/node_modules/smart-whisper/**/*",
+      "**/node_modules/uiohook-napi/**/*",
+      "**/node_modules/parakeet-coreml/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "OpenWhisper needs microphone access to transcribe your voice.",
+        "NSAppleEventsUsageDescription": "OpenWhisper uses System Events to paste transcribed text into the focused application."
+      }
+    }
+  }
+}

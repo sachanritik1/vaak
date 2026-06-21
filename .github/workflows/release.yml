@@ -23,17 +23,21 @@ jobs:
           cache: npm
 
       # node-gyp (used by @electron/rebuild) needs distutils; removed in Python 3.12+.
-      # Provide a venv with setuptools — same approach as scripts/rebuild-native.cjs.
+      # electron-builder rebuilds per target arch (arm64 + x64), so Python must be set
+      # for the entire job — not only during npm ci.
       - name: Prepare node-gyp Python
         run: |
           python3 -m venv .venv-native
           .venv-native/bin/pip install setuptools
+          PY="${{ github.workspace }}/.venv-native/bin/python"
+          echo "PYTHON=$PY" >> "$GITHUB_ENV"
+          echo "npm_config_python=$PY" >> "$GITHUB_ENV"
+          npm config set python "$PY"
+          echo "python=$PY" >> .npmrc
+          "$PY" -c "from distutils.version import StrictVersion; print('node-gyp python ok')"
 
       - name: Install dependencies
         run: npm ci
-        env:
-          PYTHON: ${{ github.workspace }}/.venv-native/bin/python
-          npm_config_python: ${{ github.workspace }}/.venv-native/bin/python
 
       - name: Build and publish
         env:
@@ -43,8 +47,6 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          PYTHON: ${{ github.workspace }}/.venv-native/bin/python
-          npm_config_python: ${{ github.workspace }}/.venv-native/bin/python
         run: |
           if [ -n "$CSC_LINK" ]; then
             npm run release -- --mac dmg --arm64 --x64

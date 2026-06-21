@@ -14,16 +14,26 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+
+      # node-gyp (used by @electron/rebuild) needs distutils; removed in Python 3.12+.
+      # Provide a venv with setuptools — same approach as scripts/rebuild-native.cjs.
+      - name: Prepare node-gyp Python
+        run: |
+          python3 -m venv .venv-native
+          .venv-native/bin/pip install setuptools
 
       - name: Install dependencies
         run: npm ci
+        env:
+          PYTHON: ${{ github.workspace }}/.venv-native/bin/python
+          npm_config_python: ${{ github.workspace }}/.venv-native/bin/python
 
       - name: Build and publish
         env:
@@ -33,10 +43,12 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PYTHON: ${{ github.workspace }}/.venv-native/bin/python
+          npm_config_python: ${{ github.workspace }}/.venv-native/bin/python
         run: |
           if [ -n "$CSC_LINK" ]; then
-            npm run release -- --mac dmg --arm64 --x64 --publish always
+            npm run release -- --mac dmg --arm64 --x64
           else
             export CSC_IDENTITY_AUTO_DISCOVERY=false
-            npm run release -- --mac dmg --arm64 --x64 --publish always --config.mac.hardenedRuntime=false
+            npm run release -- --mac dmg --arm64 --x64 --config.mac.hardenedRuntime=false
           fi

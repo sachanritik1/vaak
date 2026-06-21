@@ -23,7 +23,17 @@ Pre-built macOS installers are on the [Releases](../../releases/latest) page.
 | Apple Silicon (M1/M2/M3/M4) | `Vaak-x.x.x-arm64.dmg` |
 | Intel Mac | `Vaak-x.x.x-x64.dmg` |
 
-Open the DMG, drag Vaak to Applications, then grant permissions on first launch (see below). Unsigned builds may require **Right-click → Open** the first time.
+Open the DMG, drag Vaak to Applications, then grant permissions on first launch (see below).
+
+**First launch from GitHub download:** macOS marks downloaded apps with a quarantine flag. If you see *“Vaak is damaged and can’t be opened”*, the app is not corrupt — Gatekeeper is blocking an ad-hoc signed build. Fix it once with either:
+
+```bash
+xattr -cr /Applications/Vaak.app
+```
+
+or **Right-click Vaak → Open** (then confirm in the dialog).
+
+For a seamless install with no warning, set up [code signing + notarization](#code-signing-optional) in CI (requires an Apple Developer account, $99/year).
 
 ## Requirements
 
@@ -122,7 +132,7 @@ The tag must match `package.json` version (e.g. tag `v0.1.0` for version `0.1.0`
 
 ### Code signing (optional)
 
-By default, CI produces **unsigned** DMGs (Gatekeeper will warn on first open). To sign and notarize in CI, add **all** of these repository secrets:
+By default, CI produces **ad-hoc signed** DMGs (works locally, but Gatekeeper warns when downloaded from the internet). To ship without the quarantine warning, add **all** of these repository secrets:
 
 | Secret | Purpose |
 |--------|---------|

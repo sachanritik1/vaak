@@ -9,7 +9,7 @@ import {
   inferEngineFromFilename,
   resolveHuggingFaceUrl
 } from './catalog'
-import { downloadParakeetCoremlModels } from '../stt/parakeet-coreml-engine'
+import { downloadParakeetCoremlModels, isParakeetCoremlSupported } from '../stt/parakeet-coreml-engine'
 import { ensureParakeetCli } from '../stt/parakeet-cli-binary'
 import { ensureSherpaOffline } from '../stt/sherpa-binary'
 import { writeSherpaManifest } from '../stt/sherpa-manifest'
@@ -84,6 +84,9 @@ export async function downloadCatalogModel(catalogId: string): Promise<Installed
   if (existing) return { ...existing, engine: existing.engine ?? entry.engine }
 
   if (entry.engine === 'parakeet-coreml') {
+    if (!isParakeetCoremlSupported()) {
+      throw new Error('Parakeet CoreML requires macOS on Apple Silicon (M1/M2/M3/M4).')
+    }
     const modelDir = await downloadParakeetCoremlModels((percent) => {
       broadcastProgress({
         modelId: entry.id,

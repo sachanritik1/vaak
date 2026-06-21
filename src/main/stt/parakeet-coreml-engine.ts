@@ -11,6 +11,10 @@ type ParakeetModule = {
   getDefaultModelDir(): string
 }
 
+export function isParakeetCoremlSupported(): boolean {
+  return process.platform === 'darwin' && process.arch === 'arm64'
+}
+
 export class ParakeetCoremlEngine implements SttEngine {
   private engine: InstanceType<ParakeetModule['ParakeetAsrEngine']> | null = null
   private loaded = false
@@ -19,7 +23,7 @@ export class ParakeetCoremlEngine implements SttEngine {
   private async getModule(): Promise<ParakeetModule> {
     if (this.parakeetModule) return this.parakeetModule
     try {
-      this.parakeetModule = (await import('parakeet-coreml')) as ParakeetModule
+      this.parakeetModule = (await import(/* @vite-ignore */ 'parakeet-coreml')) as ParakeetModule
       return this.parakeetModule
     } catch {
       throw new Error(
@@ -72,7 +76,7 @@ export function getParakeetCoremlEngine(): ParakeetCoremlEngine {
 export async function downloadParakeetCoremlModels(
   onProgress?: (percent: number) => void
 ): Promise<string> {
-  const mod = await import('parakeet-coreml') as ParakeetModule
+  const mod = (await import(/* @vite-ignore */ 'parakeet-coreml')) as ParakeetModule
   if (!mod.isAvailable()) {
     throw new Error('Parakeet CoreML requires macOS 14+ on Apple Silicon.')
   }

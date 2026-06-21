@@ -8,6 +8,7 @@ import {
   openInputMonitoringSettings
 } from './permissions'
 import { MODEL_CATALOG } from './models/catalog'
+import { isParakeetCoremlSupported } from './stt/parakeet-coreml-engine'
 import {
   getInstalledModels,
   deleteModel,
@@ -52,7 +53,11 @@ export function registerIpcHandlers(): void {
     openInputMonitoringSettings()
   })
 
-  ipcMain.handle(IPC.GET_MODEL_CATALOG, () => MODEL_CATALOG)
+  ipcMain.handle(IPC.GET_MODEL_CATALOG, () =>
+    MODEL_CATALOG.filter(
+      (entry) => entry.engine !== 'parakeet-coreml' || isParakeetCoremlSupported()
+    )
+  )
 
   ipcMain.handle(IPC.GET_INSTALLED_MODELS, () => getInstalledModels())
 

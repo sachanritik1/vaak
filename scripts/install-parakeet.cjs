@@ -7,7 +7,7 @@ const { join } = require('node:path')
 const root = join(__dirname, '..')
 const addon = join(root, 'node_modules/parakeet-coreml/build/Release/coreml_asr.node')
 
-if (process.platform !== 'darwin') {
+if (process.platform !== 'darwin' || process.arch !== 'arm64') {
   console.log('[parakeet] Skipping parakeet-coreml (macOS Apple Silicon only)')
   process.exit(0)
 }

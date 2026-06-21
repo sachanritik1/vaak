@@ -23,17 +23,20 @@ Pre-built macOS installers are on the [Releases](../../releases/latest) page.
 | Apple Silicon (M1/M2/M3/M4) | `Vaak-x.x.x-arm64.dmg` |
 | Intel Mac | `Vaak-x.x.x-x64.dmg` |
 
-Open the DMG, drag Vaak to Applications, then grant permissions on first launch (see below).
+### Install
 
-**First launch from GitHub download:** macOS marks downloaded apps with a quarantine flag. If you see *“Vaak is damaged and can’t be opened”*, the app is not corrupt — Gatekeeper is blocking an ad-hoc signed build. Fix it once with either:
+1. Open the DMG and drag **Vaak** to **Applications**.
+2. If macOS says *“Vaak is damaged and can’t be opened”* (common for GitHub downloads), run this once in Terminal — the app is fine; Gatekeeper is blocking the quarantine flag:
 
-```bash
-xattr -cr /Applications/Vaak.app
-```
+   ```bash
+   xattr -cr /Applications/Vaak.app
+   ```
 
-or **Right-click Vaak → Open** (then confirm in the dialog).
+   Alternatively: **Right-click Vaak → Open** and confirm in the dialog.
 
-For a seamless install with no warning, set up [code signing + notarization](#code-signing-optional) in CI (requires an Apple Developer account, $99/year).
+3. Launch Vaak and grant **Microphone**, **Accessibility**, and **Input Monitoring** permissions (see [Permissions](#permissions)).
+
+> Maintainers: for installs with no Gatekeeper prompt, set up [code signing + notarization](#code-signing-optional) in CI (Apple Developer account required).
 
 ## Requirements
 

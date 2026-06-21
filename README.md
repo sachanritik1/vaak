@@ -122,7 +122,7 @@ The tag must match `package.json` version (e.g. tag `v0.1.0` for version `0.1.0`
 
 ### Code signing (optional)
 
-By default, CI produces **unsigned** DMGs (Gatekeeper will warn on first open). To sign and notarize in CI, add these repository secrets:
+By default, CI produces **unsigned** DMGs (Gatekeeper will warn on first open). To sign and notarize in CI, add **all** of these repository secrets:
 
 | Secret | Purpose |
 |--------|---------|
@@ -131,6 +131,8 @@ By default, CI produces **unsigned** DMGs (Gatekeeper will warn on first open). 
 | `APPLE_ID` | Apple ID email |
 | `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password |
 | `APPLE_TEAM_ID` | Team ID |
+
+If you are not signing yet, **delete** any empty or placeholder `CSC_LINK` secret — an empty value breaks the build (electron-builder treats the repo folder as a certificate path).
 
 For local signed builds:
 

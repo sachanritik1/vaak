@@ -67,7 +67,13 @@ jobs:
             --publish always
             --config.npmRebuild=false
           )
-          if [ -z "${CSC_LINK:-}" ]; then
+          # An empty CSC_LINK secret makes electron-builder treat the repo root as a
+          # certificate path ("…/vaak not a file"). Only sign when fully configured.
+          if [ -n "${CSC_LINK:-}" ] && [ -n "${CSC_KEY_PASSWORD:-}" ]; then
+            echo "Code signing enabled"
+          else
+            echo "Building unsigned (no or incomplete signing secrets)"
+            unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
             export CSC_IDENTITY_AUTO_DISCOVERY=false
             args+=(--config.mac.hardenedRuntime=false)
           fi

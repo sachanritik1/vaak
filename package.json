@@ -48,6 +48,7 @@
       "provider": "github",
       "releaseType": "release"
     },
+    "npmRebuild": false,
     "directories": {
       "output": "release",
       "buildResources": "build"

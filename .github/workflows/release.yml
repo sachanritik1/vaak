@@ -43,7 +43,6 @@ jobs:
           PY="$(command -v python3)"
           echo "PYTHON=$PY" >> "$GITHUB_ENV"
           echo "npm_config_python=$PY" >> "$GITHUB_ENV"
-          npm config set python "$PY"
           "$PY" -c "from distutils.version import StrictVersion; print('node-gyp ok:', '$PY')"
 
       - name: Install dependencies

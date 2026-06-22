@@ -1,6 +1,6 @@
 {
   "name": "vaak",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Vaak — open-source Wispr Flow alternative with local voice dictation",
   "main": "./out/main/index.js",
   "author": "Vaak Contributors",

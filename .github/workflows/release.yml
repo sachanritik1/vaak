@@ -61,23 +61,52 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          args=(
-            --mac dmg
-            --"${{ matrix.arch }}"
-            --publish always
-            --config.npmRebuild=false
-          )
-          # An empty CSC_LINK secret makes electron-builder treat the repo root as a
-          # certificate path ("…/vaak not a file"). Only sign when fully configured.
+          arch='${{ matrix.arch }}'
+          signed=false
           if [ -n "${CSC_LINK:-}" ] && [ -n "${CSC_KEY_PASSWORD:-}" ]; then
-            echo "Code signing enabled"
+            signed=true
+            echo "Developer ID signing enabled"
           else
-            echo "Ad-hoc signing (no Apple Developer certificate configured)"
+            echo "Ad-hoc signing (no Apple Developer certificate)"
             unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
-            args+=(
-              --config.mac.hardenedRuntime=false
-              --config.mac.identity=-
-              --config.mac.gatekeeperAssess=false
-            )
           fi
-          npx electron-builder "${args[@]}"
+
+          if [ "$signed" = true ]; then
+            npx electron-builder \
+              --mac dmg \
+              --"$arch" \
+              --publish always \
+              --config.npmRebuild=false
+            exit 0
+          fi
+
+          # Unsigned path: pack → ad-hoc sign natives (CI was applying hardened-runtime
+          # entitlements with ad-hoc identity, producing a broken signature → "damaged").
+          npx electron-builder \
+            --mac dir \
+            --"$arch" \
+            --publish never \
+            --config.npmRebuild=false \
+            --config.mac.identity=null \
+            --config.mac.hardenedRuntime=false \
+            --config.mac.gatekeeperAssess=false
+
+          app="$(find release -path '*/Vaak.app' -type d | head -1)"
+          if [ -z "$app" ]; then
+            echo "Vaak.app not found under release/" >&2
+            find release -maxdepth 3 || true
+            exit 1
+          fi
+
+          chmod +x scripts/sign-mac-adhoc.sh
+          scripts/sign-mac-adhoc.sh "$app"
+
+          npx electron-builder \
+            --mac dmg \
+            --"$arch" \
+            --publish always \
+            --prepackaged "$app" \
+            --config.npmRebuild=false \
+            --config.mac.identity=null \
+            --config.mac.hardenedRuntime=false \
+            --config.mac.gatekeeperAssess=false

@@ -26,17 +26,17 @@ Pre-built macOS installers are on the [Releases](../../releases/latest) page.
 ### Install
 
 1. Open the DMG and drag **Vaak** to **Applications**.
-2. If macOS says *“Vaak is damaged and can’t be opened”* (common for GitHub downloads), run this once in Terminal — the app is fine; Gatekeeper is blocking the quarantine flag:
+2. **Required for GitHub downloads** — macOS quarantines files from the internet. Run this once in Terminal after installing:
 
    ```bash
    xattr -cr /Applications/Vaak.app
    ```
 
-   Alternatively: **Right-click Vaak → Open** and confirm in the dialog.
+3. If macOS still says *“Vaak is damaged and can’t be opened”*, try **Right-click Vaak → Open** and confirm in the dialog.
 
-3. Launch Vaak and grant **Microphone**, **Accessibility**, and **Input Monitoring** permissions (see [Permissions](#permissions)).
+4. Launch Vaak and grant **Microphone**, **Accessibility**, and **Input Monitoring** permissions (see [Permissions](#permissions)).
 
-> Maintainers: for installs with no Gatekeeper prompt, set up [code signing + notarization](#code-signing-optional) in CI (Apple Developer account required).
+> **Note:** CI builds are ad-hoc signed, not notarized. The `xattr` step in #2 is required for every fresh download from Releases. To remove this step for users, set up [code signing + notarization](#code-signing-optional) (Apple Developer account).
 
 ## Requirements
 

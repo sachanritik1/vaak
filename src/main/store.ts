@@ -1,6 +1,12 @@
 import Store from 'electron-store'
 import { Context, Effect, Layer, Schema } from 'effect'
-import { AppSettings, DEFAULT_HOTKEY, DEFAULT_SETTINGS, type HistoryEntry } from '../shared/types'
+import {
+  AppSettings,
+  DEFAULT_AI_CONFIG,
+  DEFAULT_HOTKEY,
+  DEFAULT_SETTINGS,
+  type HistoryEntry
+} from '../shared/types'
 import { AppSettingsSchema } from '../shared/schema'
 
 /**
@@ -65,7 +71,7 @@ export const SettingsLive = Layer.effect(SettingsService, Effect.gen(function* (
   const readRaw = (): AppSettings => ({
     activeModelId: store.get('activeModelId'),
     hotkey: store.get('hotkey'),
-    ai: store.get('ai'),
+    ai: { ...DEFAULT_AI_CONFIG, ...store.get('ai') },
     dictionary: store.get('dictionary'),
     snippets: store.get('snippets'),
     history: store.get('history'),

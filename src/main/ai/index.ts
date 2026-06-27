@@ -3,6 +3,7 @@ import type { AiConfig } from '../../shared/types'
 import { cleanupWithOllama } from './ollama'
 import { cleanupWithOpenAI } from './openai'
 import { cleanupWithAnthropic } from './anthropic'
+import { cleanupWithOpenRouter } from './openrouter'
 
 const CLEANUP_PROMPT = `You are a voice dictation cleanup assistant. Clean up the following dictated text:
 - Remove filler words (um, uh, like, you know)
@@ -40,6 +41,8 @@ export const AiCleanupLive = Layer.succeed(AiCleanupService)({
             return yield* cleanupWithOpenAI(text, config, CLEANUP_PROMPT)
           case 'anthropic':
             return yield* cleanupWithAnthropic(text, config, CLEANUP_PROMPT)
+          case 'openrouter':
+            return yield* cleanupWithOpenRouter(text, config, CLEANUP_PROMPT)
           default:
             return text
         }

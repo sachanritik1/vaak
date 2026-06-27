@@ -23,7 +23,7 @@ import type {
  */
 
 const HotkeyModeSchema = Schema.Literals(['hold', 'toggle'])
-const AiProviderSchema = Schema.Literals(['none', 'ollama', 'openai', 'anthropic'])
+const AiProviderSchema = Schema.Literals(['none', 'ollama', 'openai', 'anthropic', 'openrouter'])
 const SttEngineTypeSchema = Schema.Literals(['whisper', 'parakeet-coreml', 'parakeet-gguf', 'sherpa-onnx'])
 const ModelFamilySchema = Schema.Literals(['whisper', 'parakeet', 'moonshine', 'sensevoice', 'nemo'])
 const SherpaModelKindSchema = Schema.Literals(['moonshine', 'sense-voice', 'nemo-ctc'])
@@ -43,7 +43,9 @@ export const AiConfigSchema = Schema.Struct({
   openaiApiKey: Schema.String,
   openaiModel: Schema.String,
   anthropicApiKey: Schema.String,
-  anthropicModel: Schema.String
+  anthropicModel: Schema.String,
+  openrouterApiKey: Schema.String,
+  openrouterModel: Schema.String
 })
 
 export const DictionaryEntrySchema = Schema.Struct({

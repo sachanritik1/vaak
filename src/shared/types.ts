@@ -17,7 +17,7 @@ export type HotkeyConfig = {
   accelerator: string
 }
 
-export type AiProvider = 'none' | 'ollama' | 'openai' | 'anthropic'
+export type AiProvider = 'none' | 'ollama' | 'openai' | 'anthropic' | 'openrouter'
 
 export type AiConfig = {
   enabled: boolean
@@ -28,6 +28,8 @@ export type AiConfig = {
   openaiModel: string
   anthropicApiKey: string
   anthropicModel: string
+  openrouterApiKey: string
+  openrouterModel: string
 }
 
 export type DictionaryEntry = {
@@ -185,7 +187,9 @@ export const DEFAULT_AI_CONFIG: AiConfig = {
   openaiApiKey: '',
   openaiModel: 'gpt-4o-mini',
   anthropicApiKey: '',
-  anthropicModel: 'claude-3-5-haiku-20241022'
+  anthropicModel: 'claude-3-5-haiku-20241022',
+  openrouterApiKey: '',
+  openrouterModel: 'openai/gpt-4o-mini'
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {

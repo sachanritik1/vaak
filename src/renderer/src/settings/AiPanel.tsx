@@ -1,5 +1,12 @@
 import type { AiConfig, AiProvider, AppSettings } from '../../../shared/types'
 
+const PROVIDER_LABELS: Record<Exclude<AiProvider, 'none'>, string> = {
+  ollama: 'Ollama',
+  openai: 'OpenAI',
+  anthropic: 'Anthropic',
+  openrouter: 'OpenRouter'
+}
+
 type Props = {
   settings: AppSettings
   onUpdate: (partial: Partial<AppSettings>) => Promise<void>
@@ -39,13 +46,13 @@ export function AiPanel({ settings, onUpdate }: Props) {
           <div className="card">
             <h3 className="font-medium text-white mb-4">Provider</h3>
             <div className="flex flex-wrap gap-2">
-              {(['ollama', 'openai', 'anthropic'] as AiProvider[]).map((p) => (
+              {(['ollama', 'openai', 'anthropic', 'openrouter'] as const).map((p) => (
                 <button
                   key={p}
                   className={`btn ${ai.provider === p ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => updateAi({ provider: p })}
                 >
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                  {PROVIDER_LABELS[p]}
                 </button>
               ))}
             </div>
@@ -125,6 +132,33 @@ export function AiPanel({ settings, onUpdate }: Props) {
                     value={ai.anthropicModel}
                     onChange={(e) => updateAi({ anthropicModel: e.target.value })}
                     placeholder="claude-3-5-haiku-20241022"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {ai.provider === 'openrouter' && (
+            <div className="card">
+              <h3 className="font-medium text-white mb-4">OpenRouter</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">API Key</label>
+                  <input
+                    className="input"
+                    type="password"
+                    value={ai.openrouterApiKey}
+                    onChange={(e) => updateAi({ openrouterApiKey: e.target.value })}
+                    placeholder="sk-or-..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Model</label>
+                  <input
+                    className="input"
+                    value={ai.openrouterModel}
+                    onChange={(e) => updateAi({ openrouterModel: e.target.value })}
+                    placeholder="openai/gpt-4o-mini"
                   />
                 </div>
               </div>

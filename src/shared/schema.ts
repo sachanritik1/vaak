@@ -48,7 +48,7 @@ export const AiConfigSchema = Schema.Struct({
 
 export const DictionaryEntrySchema = Schema.Struct({
   word: Schema.String,
-  replacement: Schema.UndefinedOr(Schema.String)
+  replacement: Schema.optional(Schema.String)
 })
 
 export const SnippetSchema = Schema.Struct({
@@ -69,13 +69,13 @@ export const SherpaCatalogConfigSchema = Schema.Struct({
   kind: SherpaModelKindSchema,
   modelType: Schema.String,
   tokens: Schema.String,
-  preprocessor: Schema.UndefinedOr(Schema.String),
-  encoder: Schema.UndefinedOr(Schema.String),
-  uncachedDecoder: Schema.UndefinedOr(Schema.String),
-  cachedDecoder: Schema.UndefinedOr(Schema.String),
-  model: Schema.UndefinedOr(Schema.String),
-  senseVoiceLanguage: Schema.UndefinedOr(Schema.String),
-  senseVoiceItn: Schema.UndefinedOr(Schema.Boolean)
+  preprocessor: Schema.optional(Schema.String),
+  encoder: Schema.optional(Schema.String),
+  uncachedDecoder: Schema.optional(Schema.String),
+  cachedDecoder: Schema.optional(Schema.String),
+  model: Schema.optional(Schema.String),
+  senseVoiceLanguage: Schema.optional(Schema.String),
+  senseVoiceItn: Schema.optional(Schema.Boolean)
 })
 
 export const InstalledModelSchema = Schema.Struct({
@@ -87,8 +87,8 @@ export const InstalledModelSchema = Schema.Struct({
   language: Schema.String,
   source: Schema.Literals(['catalog', 'custom']),
   engine: SttEngineTypeSchema,
-  url: Schema.UndefinedOr(Schema.String),
-  sherpaManifest: Schema.UndefinedOr(SherpaCatalogConfigSchema)
+  url: Schema.optional(Schema.String),
+  sherpaManifest: Schema.optional(SherpaCatalogConfigSchema)
 })
 
 export const ModelCatalogFileSchema = Schema.Struct({
@@ -106,8 +106,8 @@ export const ModelCatalogEntrySchema = Schema.Struct({
   description: Schema.String,
   engine: SttEngineTypeSchema,
   family: ModelFamilySchema,
-  files: Schema.UndefinedOr(Schema.Array(ModelCatalogFileSchema)),
-  sherpa: Schema.UndefinedOr(SherpaCatalogConfigSchema)
+  files: Schema.optional(Schema.Array(ModelCatalogFileSchema)),
+  sherpa: Schema.optional(SherpaCatalogConfigSchema)
 })
 
 export const AppSettingsSchema = Schema.Struct({

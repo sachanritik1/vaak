@@ -48,14 +48,14 @@ Pre-built macOS installers are on the [Releases](../../releases/latest) page.
 
 ```bash
 # Install dependencies (rebuilds native modules for Electron)
-npm install
+pnpm install
 
 # Development
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
-npm run dist
+pnpm run build
+pnpm run dist
 ```
 
 On first launch:
@@ -114,7 +114,7 @@ Raw transcription is always used when AI cleanup is disabled.
 ### Local build
 
 ```bash
-npm run dist
+pnpm run dist
 ```
 
 Output: `release/Vaak-x.x.x-arm64.dmg` (and `-x64.dmg` when both arches are built).
@@ -127,7 +127,7 @@ Pushing a version tag triggers [`.github/workflows/release.yml`](.github/workflo
 
 ```bash
 # Bump version in package.json, commit, then tag
-npm version patch   # or minor / major
+pnpm version patch   # or minor / major
 git push origin main --follow-tags
 ```
 
@@ -155,7 +155,7 @@ export CSC_KEY_PASSWORD=...
 export APPLE_ID=...
 export APPLE_APP_SPECIFIC_PASSWORD=...
 export APPLE_TEAM_ID=...
-npm run dist
+pnpm run dist
 ```
 
 ## Project Structure

@@ -27,7 +27,7 @@ export class ParakeetCoremlEngine implements SttEngine {
       return this.parakeetModule
     } catch {
       throw new Error(
-        'parakeet-coreml is not available. Requires macOS 14+ on Apple Silicon. Run npm install and rebuild native modules.'
+        'parakeet-coreml is not available. Requires macOS 14+ on Apple Silicon. Run pnpm install and rebuild native modules.'
       )
     }
   }

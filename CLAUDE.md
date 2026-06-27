@@ -61,10 +61,11 @@ Open-source Wispr Flow alternative with local voice dictation (Electron + Effect
 
 ## Tooling
 
-- Package manager: **npm**. Effect is installed from the `beta` tag (`effect@beta` → v4).
-- `npm run typecheck` — `tsc --noEmit` with the Effect Language Service patch active.
-- `npm run build` — `electron-vite build` (main + preload + renderer).
-- `npm run prepare` — re-applies the Effect Language Service patch after install.
+- Package manager: **pnpm** (`packageManager` field pins the version). Effect is installed
+  from the `beta` tag (`effect@beta` → v4).
+- `pnpm run typecheck` — `tsc --noEmit` with the Effect Language Service patch active.
+- `pnpm run build` — `electron-vite build` (main + preload + renderer).
+- `pnpm run prepare` — re-applies the Effect Language Service patch after install.
 - Editor: `.vscode/settings.json` pins the workspace TypeScript so the Effect plugin loads.
 - The Effect v4 source is cloned to `~/.local/share/effect-solutions/effect` for API
   reference; refresh with `git -C ~/.local/share/effect-solutions/effect pull --depth 1`.

@@ -19,8 +19,8 @@ if (existsSync(addon)) {
 
 console.log('[parakeet] Installing parakeet-coreml (prebuilt CoreML addon)…')
 const result = spawnSync(
-  'npm',
-  ['install', 'parakeet-coreml@2.2.0', '--ignore-scripts', '--no-save'],
+  'pnpm',
+  ['install', '--ignore-scripts'],
   { cwd: root, stdio: 'inherit' }
 )
 

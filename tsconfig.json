@@ -22,6 +22,11 @@
       }
     ]
   },
-  "include": ["src/**/*", "electron.vite.config.ts"],
+  "include": [
+    "src/**/*",
+    "electron.vite.config.ts",
+    "vitest.config.ts",
+    "vitest.setup.main.ts"
+  ],
   "exclude": ["src/renderer/public/**"]
 }

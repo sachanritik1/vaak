@@ -1,37 +1,71 @@
+import { Effect, Schema } from 'effect'
 import type { AiConfig } from '../../shared/types'
+import { AiCleanupError } from '../errors'
 
-export async function cleanupWithOpenAI(
+const OpenAiResponseSchema = Schema.Struct({
+  choices: Schema.UndefinedOr(
+    Schema.Array(
+      Schema.Struct({
+        message: Schema.UndefinedOr(
+          Schema.Struct({ content: Schema.UndefinedOr(Schema.String) })
+        )
+      })
+    )
+  )
+})
+
+export function cleanupWithOpenAI(
   text: string,
   config: AiConfig,
   systemPrompt: string
-): Promise<string> {
+): Effect.Effect<string, AiCleanupError> {
   if (!config.openaiApiKey) {
-    throw new Error('OpenAI API key not configured')
+    return Effect.fail(
+      new AiCleanupError({ provider: 'openai', error: new Error('OpenAI API key not configured') })
+    )
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.openaiApiKey}`
-    },
-    body: JSON.stringify({
-      model: config.openaiModel,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: text }
-      ],
-      temperature: 0.3
+  return Effect.gen(function* () {
+    const response = yield* Effect.tryPromise({
+      try: () =>
+        fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${config.openaiApiKey}`
+          },
+          body: JSON.stringify({
+            model: config.openaiModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: text }
+            ],
+            temperature: 0.3
+          })
+        }),
+      catch: (cause) => new AiCleanupError({ provider: 'openai', error: cause })
     })
+
+    const body = yield* Effect.tryPromise({
+      try: () => response.text(),
+      catch: (cause) => new AiCleanupError({ provider: 'openai', error: cause })
+    })
+
+    if (!response.ok) {
+      return yield* new AiCleanupError({
+        provider: 'openai',
+        error: new Error(`OpenAI error: ${response.status} ${body}`)
+      })
+    }
+
+    const parsed = yield* Schema.decodeUnknownEffect(OpenAiResponseSchema)(
+      JSON.parse(body)
+    ).pipe(
+      Effect.mapError(
+        (cause) => new AiCleanupError({ provider: 'openai', error: new Error(String(cause)) })
+      )
+    )
+
+    return parsed.choices?.[0]?.message?.content?.trim() ?? text
   })
-
-  if (!response.ok) {
-    const err = await response.text()
-    throw new Error(`OpenAI error: ${response.status} ${err}`)
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>
-  }
-  return data.choices?.[0]?.message?.content?.trim() ?? text
 }

@@ -1,8 +1,7 @@
 import { clipboard } from 'electron'
 import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-
-const execFileAsync = promisify(execFile)
+import { Context, Effect, Layer, Ref } from 'effect'
+import { InjectionError } from '../errors'
 
 const VAAK_APP_NAMES = new Set(['Vaak', 'OpenWhisper', 'Electron'])
 
@@ -11,9 +10,32 @@ type ClipboardSnapshot = {
   html: string | null
 }
 
-let pasteTargetApp: string | null = null
-let lastExternalApp: string | null = null
-let pendingRestore: ClipboardSnapshot | null = null
+type InjectionState = {
+  pasteTargetApp: string | null
+  lastExternalApp: string | null
+  pendingRestore: ClipboardSnapshot | null
+}
+
+export interface InjectionService {
+  readonly capturePasteTarget: Effect.Effect<void>
+  readonly clearPasteTarget: Effect.Effect<void>
+  readonly injectText: (text: string) => Effect.Effect<void, InjectionError>
+  readonly testInjection: Effect.Effect<boolean>
+}
+
+export const InjectionService = Context.Service<InjectionService>('@vaak/Injection')
+
+const execFileEffect = (file: string, args: string[]): Effect.Effect<string, InjectionError> =>
+  Effect.tryPromise({
+    try: () =>
+      new Promise<string>((resolve, reject) => {
+        execFile(file, args, (err, stdout) => {
+          if (err) reject(err)
+          else resolve(stdout)
+        })
+      }),
+    catch: (cause) => new InjectionError({ message: `Failed to run ${file}`, error: cause })
+  })
 
 function snapshotClipboard(): ClipboardSnapshot {
   return {
@@ -32,93 +54,93 @@ function restoreClipboard(snapshot: ClipboardSnapshot): void {
   }
 }
 
-async function getFrontmostAppName(): Promise<string | null> {
-  try {
-    const { stdout } = await execFileAsync('osascript', [
-      '-e',
-      'tell application "System Events" to return name of first application process whose frontmost is true'
-    ])
-    const name = stdout.trim()
-    return name || null
-  } catch {
-    return null
-  }
-}
+export const InjectionLive = Layer.effect(InjectionService, Effect.gen(function* () {
+  const stateRef = yield* Ref.make<InjectionState>({
+    pasteTargetApp: null,
+    lastExternalApp: null,
+    pendingRestore: null
+  })
 
-/** Call when recording starts — remembers which app should receive the paste. */
-export async function capturePasteTarget(): Promise<void> {
-  if (pendingRestore) {
-    restoreClipboard(pendingRestore)
-    pendingRestore = null
-  }
+  const getFrontmostAppName = execFileEffect('osascript', [
+    '-e',
+    'tell application "System Events" to return name of first application process whose frontmost is true'
+  ]).pipe(
+    Effect.map((stdout) => stdout.trim() || null),
+    Effect.catch(() => Effect.succeed<string | null>(null))
+  )
 
-  const front = await getFrontmostAppName()
-  if (front && !VAAK_APP_NAMES.has(front)) {
-    pasteTargetApp = front
-    lastExternalApp = front
-  } else {
-    pasteTargetApp = lastExternalApp
-  }
-}
+  const capturePasteTarget = Effect.gen(function* () {
+    const state = yield* Ref.get(stateRef)
+    if (state.pendingRestore) {
+      restoreClipboard(state.pendingRestore)
+    }
 
-export function clearPasteTarget(): void {
-  pasteTargetApp = null
-}
+    const front = yield* getFrontmostAppName
+    if (front && !VAAK_APP_NAMES.has(front)) {
+      yield* Ref.set(stateRef, {
+        pasteTargetApp: front,
+        lastExternalApp: front,
+        pendingRestore: null
+      })
+    } else {
+      yield* Ref.set(stateRef, {
+        pasteTargetApp: state.lastExternalApp,
+        lastExternalApp: state.lastExternalApp,
+        pendingRestore: null
+      })
+    }
+  })
 
-async function activatePasteTarget(): Promise<void> {
-  const target = pasteTargetApp ?? lastExternalApp
-  if (!target || VAAK_APP_NAMES.has(target)) return
+  const clearPasteTarget = Ref.update(stateRef, (s) => ({ ...s, pasteTargetApp: null }))
 
-  try {
-    await execFileAsync('osascript', [
+  const activatePasteTarget = Effect.gen(function* () {
+    const state = yield* Ref.get(stateRef)
+    const target = state.pasteTargetApp ?? state.lastExternalApp
+    if (!target || VAAK_APP_NAMES.has(target)) return
+    yield* execFileEffect('osascript', [
       '-e',
       `tell application "${target.replace(/"/g, '\\"')}" to activate`
-    ])
-    await delay(120)
-  } catch (err) {
-    console.warn('[injection] Failed to activate target app:', target, err)
-  }
-}
+    ]).pipe(
+      Effect.andThen(() => Effect.sleep(120)),
+      Effect.catch(() => Effect.void)
+    )
+  })
 
-async function simulatePaste(): Promise<void> {
-  await execFileAsync('osascript', [
+  const simulatePaste = execFileEffect('osascript', [
     '-e',
     'tell application "System Events" to keystroke "v" using command down'
   ])
-}
 
-function delay(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms))
-}
+  const injectText = Effect.fn('Injection.injectText')(function* (text: string) {
+    if (!text.trim()) return
 
-export async function injectText(text: string): Promise<void> {
-  if (!text.trim()) return
+    const state = yield* Ref.get(stateRef)
+    if (state.pendingRestore) {
+      restoreClipboard(state.pendingRestore)
+    }
 
-  if (pendingRestore) {
-    restoreClipboard(pendingRestore)
-    pendingRestore = null
-  }
+    const snapshot = snapshotClipboard()
+    clipboard.writeText(text)
 
-  const snapshot = snapshotClipboard()
-  clipboard.writeText(text)
+    yield* Effect.gen(function* () {
+      yield* activatePasteTarget
+      yield* simulatePaste
+      yield* Ref.update(stateRef, (s) => ({ ...s, pendingRestore: snapshot }))
+    }).pipe(
+      Effect.catch((err) =>
+        Effect.gen(function* () {
+          restoreClipboard(snapshot)
+          return yield* err
+        })
+      )
+    )
+  })
 
-  try {
-    await activatePasteTarget()
-    await simulatePaste()
-    // Keep transcription on clipboard until the next dictation so manual Cmd+V still works
-    pendingRestore = snapshot
-  } catch (err) {
-    restoreClipboard(snapshot)
-    throw err
-  }
-}
-
-export async function testInjection(): Promise<boolean> {
-  try {
-    await capturePasteTarget()
-    await injectText('Vaak test')
+  const testInjection = Effect.gen(function* () {
+    yield* capturePasteTarget
+    yield* injectText('Vaak test')
     return true
-  } catch {
-    return false
-  }
-}
+  }).pipe(Effect.catch(() => Effect.succeed(false)))
+
+  return { capturePasteTarget, clearPasteTarget, injectText, testInjection }
+}))

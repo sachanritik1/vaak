@@ -10,6 +10,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "postinstall": "electron-builder install-app-deps && node scripts/install-parakeet.cjs",
+    "prepare": "effect-language-service patch",
     "rebuild": "electron-builder install-app-deps",
     "typecheck": "tsc --noEmit",
     "pack": "npm run build && electron-builder --dir",
@@ -17,6 +18,7 @@
     "release": "npm run build && electron-builder --publish always"
   },
   "dependencies": {
+    "effect": "^4.0.0-beta.90",
     "electron-store": "^8.2.0",
     "smart-whisper": "^0.8.1",
     "uiohook-napi": "^1.5.5"
@@ -25,11 +27,13 @@
     "parakeet-coreml": "^2.2.0"
   },
   "devDependencies": {
+    "@effect/language-service": "^0.86.2",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "effect-solutions": "^0.5.3",
     "electron": "^35.0.3",
     "electron-builder": "^25.1.8",
     "electron-vite": "^3.0.0",

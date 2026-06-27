@@ -1,6 +1,13 @@
 import { BrowserWindow, screen } from 'electron'
 import { join } from 'node:path'
+import { Context, Effect, Layer } from 'effect'
 import { IPC, type HudState } from '../../shared/types'
+
+/**
+ * The HUD window itself is an Electron resource created imperatively at
+ * startup (see `createHudWindow`). The `HudService` wraps the side-effectful
+ * interactions with that window as Effects.
+ */
 
 let hudWindow: BrowserWindow | null = null
 
@@ -51,23 +58,53 @@ export function getHudWindow(): BrowserWindow | null {
   return hudWindow
 }
 
-export function showHud(): void {
-  if (!hudWindow) return
-  hudWindow.showInactive()
+export interface HudService {
+  readonly show: Effect.Effect<void>
+  readonly hide: Effect.Effect<void>
+  readonly broadcast: (state: HudState) => Effect.Effect<void>
+  readonly notifyRecording: Effect.Effect<void>
+  readonly notifyStop: Effect.Effect<void>
 }
 
-export function hideHud(): void {
-  if (!hudWindow) return
-  hudWindow.hide()
-}
+export const HudService = Context.Service<HudService>('@vaak/Hud')
 
-export function broadcastHudState(state: HudState): void {
-  if (hudWindow && !hudWindow.isDestroyed()) {
-    hudWindow.webContents.send(IPC.HUD_STATE, state)
-  }
-  if (state.state === 'recording') {
-    showHud()
-  } else if (state.state === 'idle') {
-    setTimeout(() => hideHud(), 800)
-  }
-}
+const showEffect = Effect.sync(() => {
+  if (hudWindow) hudWindow.showInactive()
+})
+
+const hideEffect = Effect.sync(() => {
+  if (hudWindow) hudWindow.hide()
+})
+
+export const HudLive = Layer.succeed(HudService)({
+  show: showEffect,
+  hide: hideEffect,
+  broadcast: (state) =>
+    Effect.sync(() => {
+      if (hudWindow && !hudWindow.isDestroyed()) {
+        hudWindow.webContents.send(IPC.HUD_STATE, state)
+      }
+    }).pipe(
+      Effect.andThen(
+        Effect.sync(() => {
+          if (state.state === 'recording') {
+            if (hudWindow) hudWindow.showInactive()
+          } else if (state.state === 'idle') {
+            setTimeout(() => {
+              if (hudWindow) hudWindow.hide()
+            }, 800)
+          }
+        })
+      )
+    ),
+  notifyRecording: Effect.sync(() => {
+    if (hudWindow && !hudWindow.isDestroyed()) {
+      hudWindow.webContents.send('dictation:state', 'recording')
+    }
+  }),
+  notifyStop: Effect.sync(() => {
+    if (hudWindow && !hudWindow.isDestroyed()) {
+      hudWindow.webContents.send('dictation:state', 'idle')
+    }
+  })
+})

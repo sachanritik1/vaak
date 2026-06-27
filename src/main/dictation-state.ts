@@ -1,40 +1,27 @@
-import { getHudWindow } from './windows/hud'
+import { Context, Effect, Layer, Ref } from 'effect'
 
 export type DictationPhase = 'idle' | 'recording' | 'processing'
 
-let phase: DictationPhase = 'idle'
-
-export function getDictationPhase(): DictationPhase {
-  return phase
+export interface DictationStateService {
+  readonly getPhase: Effect.Effect<DictationPhase>
+  readonly canStartRecording: Effect.Effect<boolean>
+  readonly markRecording: Effect.Effect<void>
+  readonly markProcessing: Effect.Effect<void>
+  readonly markIdle: Effect.Effect<void>
 }
 
-export function canStartRecording(): boolean {
-  return phase === 'idle'
-}
+export const DictationStateService = Context.Service<DictationStateService>(
+  '@vaak/DictationState'
+)
 
-export function markDictationRecording(): void {
-  phase = 'recording'
-}
+export const DictationStateLive = Layer.effect(DictationStateService, Effect.gen(function* () {
+  const phaseRef = yield* Ref.make<DictationPhase>('idle')
 
-export function markDictationProcessing(): void {
-  phase = 'processing'
-}
-
-export function markDictationIdle(): void {
-  phase = 'idle'
-}
-
-export function sendToHud(channel: string, ...args: unknown[]): void {
-  const hud = getHudWindow()
-  if (hud && !hud.isDestroyed()) {
-    hud.webContents.send(channel, ...args)
+  return {
+    getPhase: Ref.get(phaseRef),
+    canStartRecording: Ref.get(phaseRef).pipe(Effect.map((p) => p === 'idle')),
+    markRecording: Ref.set(phaseRef, 'recording'),
+    markProcessing: Ref.set(phaseRef, 'processing'),
+    markIdle: Ref.set(phaseRef, 'idle')
   }
-}
-
-export function notifyHudRecording(): void {
-  sendToHud('dictation:state', 'recording')
-}
-
-export function notifyHudStop(): void {
-  sendToHud('dictation:state', 'idle')
-}
+}))

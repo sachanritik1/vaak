@@ -1,7 +1,14 @@
 import Store from 'electron-store'
-import { AppSettings, DEFAULT_HOTKEY, DEFAULT_SETTINGS } from '../shared/types'
+import { Context, Effect, Layer, Schema } from 'effect'
+import { AppSettings, DEFAULT_HOTKEY, DEFAULT_SETTINGS, type HistoryEntry } from '../shared/types'
+import { AppSettingsSchema } from '../shared/schema'
 
-const schema = {
+/**
+ * SettingsService wraps `electron-store`. Reads run the legacy hotkey
+ * migration and validate through the Effect Schema mirror of `AppSettings`.
+ */
+
+const storeSchema = {
   activeModelId: { type: 'string' as const, nullable: true },
   hotkey: { type: 'object' as const },
   ai: { type: 'object' as const },
@@ -13,14 +20,17 @@ const schema = {
   autoStart: { type: 'boolean' as const }
 }
 
-export const appStore = new Store<AppSettings>({
-  name: 'vaak',
-  defaults: DEFAULT_SETTINGS,
-  schema
-})
+export interface SettingsService {
+  readonly get: Effect.Effect<AppSettings, Schema.SchemaError>
+  readonly update: (partial: Partial<AppSettings>) => Effect.Effect<AppSettings, Schema.SchemaError>
+  readonly addHistory: (entry: HistoryEntry) => Effect.Effect<void>
+  readonly clearHistory: Effect.Effect<void>
+}
+
+export const SettingsService = Context.Service<SettingsService>('@vaak/Settings')
 
 /** Fix legacy installs that mapped Command keycodes to Option labels */
-function migrateHotkey(settings: AppSettings): AppSettings {
+function migrateHotkey(settings: AppSettings, store: Store<AppSettings>): AppSettings {
   const { hotkey } = settings
   const wrongOptionMappings: Record<number, number> = {
     3675: 3640, // was labeled Option but is Left Command
@@ -38,41 +48,54 @@ function migrateHotkey(settings: AppSettings): AppSettings {
         label: correctedKeycode === 3640 ? 'Right Option (⌥)' : 'Left Option (⌥)'
       }
     }
-    appStore.set('hotkey', migrated.hotkey)
+    store.set('hotkey', migrated.hotkey)
     return migrated
   }
 
   return settings
 }
 
-export function getSettings(): AppSettings {
-  const settings: AppSettings = {
-    activeModelId: appStore.get('activeModelId'),
-    hotkey: appStore.get('hotkey'),
-    ai: appStore.get('ai'),
-    dictionary: appStore.get('dictionary'),
-    snippets: appStore.get('snippets'),
-    history: appStore.get('history'),
-    installedModels: appStore.get('installedModels'),
-    gpuEnabled: appStore.get('gpuEnabled'),
-    autoStart: appStore.get('autoStart')
-  }
-  return migrateHotkey(settings)
-}
+export const SettingsLive = Layer.effect(SettingsService, Effect.gen(function* () {
+  const store = new Store<AppSettings>({
+    name: 'vaak',
+    defaults: DEFAULT_SETTINGS,
+    schema: storeSchema
+  })
 
-export function updateSettings(partial: Partial<AppSettings>): AppSettings {
-  for (const [key, value] of Object.entries(partial)) {
-    appStore.set(key as keyof AppSettings, value as never)
-  }
-  return getSettings()
-}
+  const readRaw = (): AppSettings => ({
+    activeModelId: store.get('activeModelId'),
+    hotkey: store.get('hotkey'),
+    ai: store.get('ai'),
+    dictionary: store.get('dictionary'),
+    snippets: store.get('snippets'),
+    history: store.get('history'),
+    installedModels: store.get('installedModels'),
+    gpuEnabled: store.get('gpuEnabled'),
+    autoStart: store.get('autoStart')
+  })
 
-export function addHistoryEntry(entry: AppSettings['history'][0]): void {
-  const history = appStore.get('history')
-  const next = [entry, ...history].slice(0, 200)
-  appStore.set('history', next)
-}
+  const get = Effect.gen(function* () {
+    const raw = readRaw()
+    const validated = yield* Schema.decodeUnknownEffect(AppSettingsSchema)(raw)
+    return migrateHotkey(validated as AppSettings, store)
+  })
 
-export function clearHistory(): void {
-  appStore.set('history', [])
-}
+  const update = Effect.fn('Settings.update')(function* (partial: Partial<AppSettings>) {
+    for (const [key, value] of Object.entries(partial)) {
+      store.set(key as keyof AppSettings, value as never)
+    }
+    return yield* get
+  })
+
+  const addHistory = Effect.fn('Settings.addHistory')(function* (entry: HistoryEntry) {
+    const history = store.get('history')
+    const next = [entry, ...history].slice(0, 200)
+    store.set('history', next)
+  })
+
+  const clearHistory = Effect.sync(() => {
+    store.set('history', [])
+  })
+
+  return { get, update, addHistory, clearHistory }
+}))

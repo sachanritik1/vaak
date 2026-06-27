@@ -1,10 +1,13 @@
 import { app, Menu, nativeImage, Tray } from 'electron'
 import { join } from 'node:path'
+import { Effect } from 'effect'
 import { createHudWindow } from './windows/hud'
 import { openSettingsWindow } from './windows/settings'
 import { registerIpcHandlers, ensureDictationIdle } from './ipc'
-import { initHotkeyManager, stopHotkeyManager } from './hotkey/manager'
-import { markDictationIdle } from './dictation-state'
+import { HotkeyService } from './hotkey/manager'
+import { DictationStateService } from './dictation-state'
+import { AppLayer } from './layers'
+import { disposeRuntime, initRuntime, runMain } from './runtime'
 import { migrateFromOpenWhisper } from './migrate-user-data'
 
 let tray: Tray | null = null
@@ -71,22 +74,35 @@ export function setupApp(): void {
       app.dock.hide()
     }
 
+    // Build the single Effect runtime from the composed application layer.
+    initRuntime(AppLayer)
+
     registerIpcHandlers()
     createHudWindow()
     createTray()
 
-    // Reset any stale state from a previous crash
-    markDictationIdle()
+    // Reset any stale state from a previous crash.
+    runMain(
+      Effect.gen(function* () {
+        const dictation = yield* DictationStateService
+        yield* dictation.markIdle
+      })
+    )
     ensureDictationIdle()
 
-    initHotkeyManager({
-      onStart: () => {
-        // HUD audio capture is driven by notifyHudRecording()
-      },
-      onStop: () => {
-        // HUD submits PCM via PROCESS_RECORDING IPC
-      }
-    })
+    runMain(
+      Effect.gen(function* () {
+        const hotkey = yield* HotkeyService
+        yield* hotkey.init({
+          onStart: () => {
+            // HUD audio capture is driven by HudService.notifyRecording()
+          },
+          onStop: () => {
+            // HUD submits PCM via the PROCESS_RECORDING IPC
+          }
+        })
+      })
+    )
 
     openSettingsWindow()
   })
@@ -96,7 +112,13 @@ export function setupApp(): void {
   })
 
   app.on('before-quit', () => {
-    stopHotkeyManager()
+    runMain(
+      Effect.gen(function* () {
+        const hotkey = yield* HotkeyService
+        yield* hotkey.stop
+      })
+    )
+    void disposeRuntime()
   })
 
   app.on('activate', () => {
